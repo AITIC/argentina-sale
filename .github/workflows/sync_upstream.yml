@@ -1,0 +1,38 @@
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: '0 5 * * *'  # Todos los días a las 5 AM UTC
+  workflow_dispatch:     # También podés lanzarlo manualmente
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: 17.0
+          persist-credentials: false
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/ingadhoc/argentina-sale.git
+          git fetch upstream
+
+      - name: Merge upstream into fork
+        run: |
+          git checkout 17.0
+          git merge upstream/17.0 || echo "No changes to merge"
+
+      - name: Push changes
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push https://x-access-token:${TOKEN}@github.com/AITIC/argentina-sale.git 17.0
