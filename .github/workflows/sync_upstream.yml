@@ -23,7 +23,7 @@ jobs:
 
       - name: Add upstream remote
         run: |
-          git remote add upstream git@github.com:ingadhoc/argentina-sale.git
+          git remote add upstream https://github.com/ingadhoc/argentina-sale.git
           git fetch upstream
 
       - name: Merge upstream into fork
