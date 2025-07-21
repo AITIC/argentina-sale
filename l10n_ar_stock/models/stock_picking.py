@@ -318,9 +318,9 @@ class StockPicking(models.Model):
 
             cot_qty_type = rec.company_id.cot_product_uom_qty
             if cot_qty_type:
-                move_line_operations = rec.mapped('move_ids').filtered(lambda x: x.quantity)
+                move_line_operations = rec.mapped('move_lines').filtered(lambda x: x.quantity_done)
             else:
-                move_line_operations = rec.mapped('move_ids').filtered(lambda x: x.product_uom_qty)
+                move_line_operations = rec.mapped('move_lines').filtered(lambda x: x.product_uom_qty)
 
             for line in move_line_operations:
 
