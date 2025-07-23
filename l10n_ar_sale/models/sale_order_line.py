@@ -96,42 +96,45 @@ class SaleOrderLine(models.Model):
             line.report_price_net = report_price_net
             line.report_tax_id = not_included_taxes
 
-    @api.model_create_multi
-    def create(self, vals):
-        rec = super(SaleOrderLine, self).create(vals)
-        rec.check_vat_tax()
-        return rec
 
-    def check_vat_tax(self):
-        """For recs of argentinian companies with l10n_ar_company_requires_vat (that
-        comes from the responsability), we ensure one and only one vat tax is
-        configured
-        TODO: we could also integrate with so_type invoice journal id or
-        with sale_checkbook_id
-        """
-        # por ahora, para no romper el install de sale_timesheet lo
-        # desactivamos en la instalacion
-        if self.env.context.get('install_mode'):
-            return True
-        for rec in self.filtered(
-                lambda x: not x.display_type and
-                x.company_id.country_id == self.env.ref('base.ar') and
-                x.company_id.l10n_ar_company_requires_vat):
-            vat_taxes = rec.tax_id.filtered(
-                lambda x: x.tax_group_id.l10n_ar_vat_afip_code)
-            if len(vat_taxes) != 1:
-                raise UserError(_(
-                    'Debe haber un único impuesto del grupo de impuestos "IVA" por línea, agréguelo a "%s". '
-                    'En caso de tenerlo, revise la configuración del impuesto, en opciones avanzadas, '
-                    'en el campo correspondiente "Grupo de Impuestos".' % (
-                        rec.product_id.name)))
+    # Comentamos esta sección porque la validación de impuestos se hace al confirmar la venta/factura
+    # y no al crear la línea de venta, para evitar problemas 
+    # @api.model_create_multi
+    # def create(self, vals):
+    #     rec = super(SaleOrderLine, self).create(vals)
+    #     rec.check_vat_tax()
+    #     return rec
 
-    def write(self, vals):
-        res = super(SaleOrderLine, self).write(vals)
-        # for performance we only check if tax or company is on vals
-        if 'tax_id' in vals or 'company_id' in vals:
-            self.check_vat_tax()
-        return res
+    # def check_vat_tax(self):
+    #     """For recs of argentinian companies with l10n_ar_company_requires_vat (that
+    #     comes from the responsability), we ensure one and only one vat tax is
+    #     configured
+    #     TODO: we could also integrate with so_type invoice journal id or
+    #     with sale_checkbook_id
+    #     """
+    #     # por ahora, para no romper el install de sale_timesheet lo
+    #     # desactivamos en la instalacion
+    #     if self.env.context.get('install_mode'):
+    #         return True
+    #     for rec in self.filtered(
+    #             lambda x: not x.display_type and
+    #             x.company_id.country_id == self.env.ref('base.ar') and
+    #             x.company_id.l10n_ar_company_requires_vat):
+    #         vat_taxes = rec.tax_id.filtered(
+    #             lambda x: x.tax_group_id.l10n_ar_vat_afip_code)
+    #         if len(vat_taxes) != 1:
+    #             raise UserError(_(
+    #                 'Debe haber un único impuesto del grupo de impuestos "IVA" por línea, agréguelo a "%s". '
+    #                 'En caso de tenerlo, revise la configuración del impuesto, en opciones avanzadas, '
+    #                 'en el campo correspondiente "Grupo de Impuestos".' % (
+    #                     rec.product_id.name)))
+
+    # def write(self, vals):
+    #     res = super(SaleOrderLine, self).write(vals)
+    #     # for performance we only check if tax or company is on vals
+    #     if 'tax_id' in vals or 'company_id' in vals:
+    #         self.check_vat_tax()
+    #     return res
 
     @api.depends('order_id.date_order')
     def _compute_amount(self):
